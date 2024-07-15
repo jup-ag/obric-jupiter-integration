@@ -2248,6 +2248,7 @@ dependencies = [
  "rust_decimal",
  "solana-client",
  "solana-sdk",
+ "thiserror",
 ]
 
 [[package]]
