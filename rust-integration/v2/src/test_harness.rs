@@ -1,8 +1,8 @@
-use crate::constants::PROGRAM_ID;
-use crate::obric_v2_amm::ObricV2Amm;
+use crate::obric_v2_amm::{id, ObricV2Amm};
 use anyhow::Result;
-use jupiter_amm_interface::{Amm, KeyedAccount, QuoteParams};
+use jupiter_amm_interface::{Amm, AmmContext, ClockRef, KeyedAccount, QuoteParams, SwapMode};
 use solana_client::rpc_client::RpcClient;
+use solana_sdk::clock::Clock;
 use std::collections::HashMap;
 use std::env;
 
@@ -20,7 +20,7 @@ impl AmmTestHarness {
     }
 
     pub fn get_all_keyed_account(&self) -> Result<Vec<KeyedAccount>> {
-        let accounts = self.client.get_program_accounts(&PROGRAM_ID).unwrap();
+        let accounts = self.client.get_program_accounts(&id()).unwrap();
         let keyed_accounts = &mut vec![];
         for (key, account) in accounts {
             if account.data.len() == 666usize {
@@ -60,17 +60,21 @@ fn test_quote() {
 
     let test_harness = AmmTestHarness::new();
     let all_keyed_account = test_harness.get_all_keyed_account().unwrap();
+    let amm_context = AmmContext {
+        clock_ref: ClockRef::from(Clock::default()),
+    };
 
     for keyed_account in all_keyed_account {
-        let amm = &mut ObricV2Amm::from_keyed_account(&keyed_account).unwrap();
+        let amm = &mut ObricV2Amm::from_keyed_account(&keyed_account, &amm_context).unwrap();
         test_harness.update_amm(amm);
         println!("Pool: {}, {}", amm.state.mint_x, amm.state.mint_y);
-        let in_amount = pow(10, usize::from(amm.x_decimals));
+        let amount = pow(10, usize::from(amm.x_decimals));
         let quote = amm
             .quote(&QuoteParams {
-            input_mint: amm.state.mint_x,
-            in_amount,
-            output_mint: amm.state.mint_y,
+                input_mint: amm.state.mint_x,
+                amount,
+                output_mint: amm.state.mint_y,
+                swap_mode: SwapMode::ExactIn,
             })
             .unwrap();
 
@@ -78,7 +82,7 @@ fn test_quote() {
             "  Token mints: from {}, to {}",
             amm.state.mint_x, amm.state.mint_y
         );
-        println!("  In amount: {}", in_amount);
+        println!("  In amount: {}", amount);
         println!(
             "  Out amount: {:?}, Fee amount: {:?}",
             quote.out_amount, quote.fee_amount
@@ -87,9 +91,10 @@ fn test_quote() {
         let in_amount = pow(10, usize::from(amm.y_decimals)); // 10 SOL
         let quote = amm
             .quote(&QuoteParams {
-            input_mint: amm.state.mint_y,
-            in_amount,
-            output_mint: amm.state.mint_x,
+                input_mint: amm.state.mint_y,
+                amount,
+                output_mint: amm.state.mint_x,
+                swap_mode: SwapMode::ExactIn,
             })
             .unwrap();
 
