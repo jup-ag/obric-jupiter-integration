@@ -3,7 +3,7 @@ pub mod errors;
 pub mod state;
 
 use crate::errors::ObricError;
-use crate::state::{PriceFeed, SSTradingPair};
+use crate::state::SSTradingPair;
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
@@ -66,10 +66,10 @@ pub struct Swap<'info> {
     pub protocol_fee: Box<Account<'info, TokenAccount>>,
 
     #[account(address = trading_pair.x_price_feed_id @ ObricError::InvalidPriceAccount)]
-    pub x_price_feed: Box<Account<'info, PriceFeed>>,
+    pub x_price_feed: AccountInfo<'info>,
 
     #[account(address = trading_pair.y_price_feed_id @ ObricError::InvalidPriceAccount)]
-    pub y_price_feed: Box<Account<'info, PriceFeed>>,
+    pub y_price_feed: AccountInfo<'info>,
 
     pub user: Signer<'info>,
 
