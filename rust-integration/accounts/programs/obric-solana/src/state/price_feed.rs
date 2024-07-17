@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use core::ops::Deref;
-use pyth_sdk::Price;
+use pyth_sdk::{Price, UnixTimestamp};
 use pyth_sdk_solana::state::load_price_account;
 
 use crate::errors::ObricError;
@@ -11,8 +11,8 @@ pub struct PriceFeed(pyth_sdk::PriceFeed);
 declare_id!("FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH");
 
 impl PriceFeed {
-    pub fn price_normalized(&self) -> Result<Price> {
-        let p = self.0.get_price_unchecked();
+    pub fn price_normalized(&self, current_time: UnixTimestamp, age: u64) -> Result<Price> {
+        let p = self.0.get_price_no_older_than(current_time, age).ok_or(ObricError::PythOffline)?;
         let price = p.scale_to_exponent(-3).ok_or(ObricError::PythError)?;
         Ok(price)
     }

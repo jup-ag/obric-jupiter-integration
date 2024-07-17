@@ -1,14 +1,16 @@
 use anchor_lang::{declare_id, AccountDeserialize};
 use anyhow::{anyhow, bail, Result};
 use jupiter_amm_interface::{
-    try_get_account_data, AccountMap, Amm, AmmContext, KeyedAccount, Quote, QuoteParams, Swap,
-    SwapAndAccountMetas, SwapParams,
+    try_get_account_data, AccountMap, Amm, AmmContext, ClockRef, KeyedAccount, Quote, QuoteParams, 
+    Swap, SwapAndAccountMetas, SwapParams,
 };
 use obric_solana::state::{PriceFeed, SSTradingPair};
 use solana_sdk::{instruction::AccountMeta, program_pack::Pack, pubkey::Pubkey};
 use spl_token::state::{Account as TokenAccount, Mint};
 
 declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
+
+const MAX_AGE: u64 = 30;
 
 #[derive(Clone)]
 pub struct ObricV2Amm {
@@ -18,10 +20,11 @@ pub struct ObricV2Amm {
     current_y: u64,
     pub x_decimals: u8,
     pub y_decimals: u8,
+    clock_ref: ClockRef,
 }
 
 impl Amm for ObricV2Amm {
-    fn from_keyed_account(keyed_account: &KeyedAccount, _amm_context: &AmmContext) -> Result<Self> {
+    fn from_keyed_account(keyed_account: &KeyedAccount, amm_context: &AmmContext) -> Result<Self> {
         let data = &mut &keyed_account.account.data.clone()[0..];
         let ss_trading_pair = SSTradingPair::try_deserialize(data)?;
 
@@ -32,6 +35,7 @@ impl Amm for ObricV2Amm {
             current_y: 0u64,
             x_decimals: 0u8,
             y_decimals: 0u8,
+            clock_ref: amm_context.clock_ref.clone(),
         })
     }
 
@@ -96,8 +100,9 @@ impl Amm for ObricV2Amm {
             &self.state.y_price_feed_id,
         )?)?;
 
-        let price_x = price_x_fee.price_normalized()?.price as u64;
-        let price_y = price_y_fee.price_normalized()?.price as u64;
+        let time = self.clock_ref.unix_timestamp.load(std::sync::atomic::Ordering::Relaxed);
+        let price_x = price_x_fee.price_normalized(time, MAX_AGE)?.price as u64;
+        let price_y = price_y_fee.price_normalized(time, MAX_AGE)?.price as u64;
 
         self.state
             .update_price(price_x, price_y, self.x_decimals, self.y_decimals)?;

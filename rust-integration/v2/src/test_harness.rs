@@ -5,6 +5,7 @@ use solana_client::rpc_client::RpcClient;
 use solana_sdk::clock::Clock;
 use std::collections::HashMap;
 use std::env;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct AmmTestHarness {
     pub client: RpcClient,
@@ -60,8 +61,12 @@ fn test_quote() {
 
     let test_harness = AmmTestHarness::new();
     let all_keyed_account = test_harness.get_all_keyed_account().unwrap();
+    let clock = Clock {
+      unix_timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64,
+      ..Clock::default()
+    };
     let amm_context = AmmContext {
-        clock_ref: ClockRef::from(Clock::default()),
+        clock_ref: ClockRef::from(clock),
     };
 
     for keyed_account in all_keyed_account {
