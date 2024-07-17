@@ -1,19 +1,16 @@
-use crate::constants::{PROGRAM_ID};
-use anchor_lang::AccountDeserialize;
-use anchor_spl::token::spl_token::solana_program::instruction::AccountMeta;
-use anchor_spl::token::spl_token::solana_program::pubkey::Pubkey;
-use anchor_spl::token::{Mint, TokenAccount};
-use anyhow::Result;
+use anchor_lang::{declare_id, AccountDeserialize};
+use anyhow::{anyhow, bail, Result};
 use jupiter_amm_interface::{
-    Amm, KeyedAccount, Quote, QuoteParams, Swap, SwapAndAccountMetas, SwapParams,
+    try_get_account_data, AccountMap, Amm, AmmContext, KeyedAccount, Quote, QuoteParams, Swap,
+    SwapAndAccountMetas, SwapParams,
 };
-use obric_solana::state::PriceFeed;
-use obric_solana::state::SSTradingPair;
-use solana_sdk::account::Account;
-use std::collections::HashMap;
-use crate::errors::AmmError;
+use obric_solana::state::{PriceFeed, SSTradingPair};
+use solana_sdk::{instruction::AccountMeta, program_pack::Pack, pubkey::Pubkey};
+use spl_token::state::{Account as TokenAccount, Mint};
 
+declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
 
+#[derive(Clone)]
 pub struct ObricV2Amm {
     key: Pubkey,
     pub state: SSTradingPair,
@@ -24,141 +21,10 @@ pub struct ObricV2Amm {
 }
 
 impl Amm for ObricV2Amm {
-    fn label(&self) -> String {
-        return String::from("Obric V2");
-    }
-
-    fn key(&self) -> Pubkey {
-        return self.key;
-    }
-
-    fn get_reserve_mints(&self) -> Vec<Pubkey> {
-        return [self.state.mint_x, self.state.mint_y].to_vec();
-    }
-
-    fn get_accounts_to_update(&self) -> Vec<Pubkey> {
-        if self.x_decimals == 0 && self.y_decimals == 0 {
-            return [
-                self.state.reserve_x,
-                self.state.reserve_y,
-                self.state.x_price_feed_id,
-                self.state.y_price_feed_id,
-                self.state.mint_x,
-                self.state.mint_y,
-            ]
-            .to_vec();
-        } else {
-            return [
-                self.state.reserve_x,
-                self.state.reserve_y,
-                self.state.x_price_feed_id,
-                self.state.y_price_feed_id,
-            ]
-            .to_vec();
-        }
-    }
-
-    fn has_dynamic_accounts(&self) -> bool {
-        true
-    }
-
-    fn update(&mut self, accounts_map: &HashMap<Pubkey, Account>) -> Result<()> {
-        let reserve_x_data = &mut &accounts_map.get(&self.state.reserve_x).ok_or(AmmError::AccountNotFound)?.data[..];
-        let reserve_y_data = &mut &accounts_map.get(&self.state.reserve_x).ok_or(AmmError::AccountNotFound)?.data[..];
-        let reserve_x_token_account = &TokenAccount::try_deserialize(reserve_x_data)?;
-        let reserve_y_token_account = &TokenAccount::try_deserialize(reserve_y_data)?;
-        self.current_x = reserve_x_token_account.amount;
-        self.current_y = reserve_y_token_account.amount;
-
-        if self.x_decimals == 0 && self.y_decimals == 0 {
-            let mint_x_data = &mut &accounts_map.get(&self.state.mint_x).ok_or(AmmError::AccountNotFound)?.data[..];
-            let min_x = &Mint::try_deserialize(mint_x_data)?;
-
-            let mint_y_data = &mut &accounts_map.get(&self.state.mint_y).ok_or(AmmError::AccountNotFound)?.data[..];
-            let min_y = &Mint::try_deserialize(mint_y_data)?;
-
-            self.x_decimals = min_x.decimals;
-            self.y_decimals = min_y.decimals;
-        }
-
-        let price_x_data = &mut &accounts_map.get(&self.state.x_price_feed_id).ok_or(AmmError::AccountNotFound)?.data[..];
-        let price_y_data = &mut &accounts_map.get(&self.state.y_price_feed_id).ok_or(AmmError::AccountNotFound)?.data[..];
-        let price_x_fee = &PriceFeed::try_deserialize(price_x_data)?;
-        let price_y_fee = &PriceFeed::try_deserialize(price_y_data)?;
-        let price_x = price_x_fee.price_normalized()?.price as u64;
-        let price_y = price_y_fee.price_normalized()?.price as u64;
-        self.state
-            .update_price(price_x, price_y, self.x_decimals, self.y_decimals)?;
-        Ok(())
-    }
-
-    fn quote(&self, quote_params: &QuoteParams) -> Result<Quote> {
-        let (output_after_fee, protocol_fee, lp_fee) =
-            if quote_params.input_mint.eq(&self.state.mint_x) {
-                self.state
-                    .quote_x_to_y(quote_params.in_amount, self.current_x, self.current_y)?
-            } else if quote_params.input_mint.eq(&self.state.mint_y) {
-                self.state
-                    .quote_y_to_x(quote_params.in_amount, self.current_x, self.current_y)?
-            } else {
-                (0u64, 0u64, 0u64)
-            };
-        if output_after_fee == 0 {
-            Ok(Quote {
-                not_enough_liquidity: true,
-                ..Quote::default()
-            })
-        } else {
-            Ok(Quote {
-                out_amount: output_after_fee,
-                fee_amount: protocol_fee + lp_fee,
-                fee_mint: quote_params.output_mint,
-                ..Quote::default()
-            })
-        }
-    }
-
-    fn clone_amm(&self) -> Box<dyn Amm + Send + Sync> {
-        let state = &self.state;
-        Box::new(Self {
-            key: self.key,
-            state: SSTradingPair {
-                is_initialized: state.is_initialized,
-                x_price_feed_id: state.x_price_feed_id,
-                y_price_feed_id: state.y_price_feed_id,
-                reserve_x: state.reserve_x,
-                reserve_y: state.reserve_y,
-                protocol_fee_x: state.protocol_fee_x,
-                protocol_fee_y: state.protocol_fee_y,
-                bump: state.bump,
-                mint_x: state.mint_x,
-                mint_y: state.mint_y,
-                concentration: state.concentration,
-                big_k: state.big_k,
-                target_x: state.target_x,
-                cumulative_volume: state.cumulative_volume,
-                mult_x: state.mult_x,
-                mult_y: state.mult_y,
-                fee_millionth: state.fee_millionth,
-                rebate_percentage: state.rebate_percentage,
-                protocol_fee_share_thousandth: state.protocol_fee_share_thousandth,
-                volume_record: state.volume_record,
-                volume_time_record: state.volume_time_record,
-                padding: state.padding,
-            },
-            current_x: self.current_x,
-            current_y: self.current_y,
-            x_decimals: self.x_decimals,
-            y_decimals: self.y_decimals,
-        })
-    }
-
-    fn from_keyed_account(keyed_account: &KeyedAccount) -> Result<Self>
-    where
-        Self: Sized,
-    {
+    fn from_keyed_account(keyed_account: &KeyedAccount, _amm_context: &AmmContext) -> Result<Self> {
         let data = &mut &keyed_account.account.data.clone()[0..];
         let ss_trading_pair = SSTradingPair::try_deserialize(data)?;
+
         Ok(Self {
             key: keyed_account.key,
             state: ss_trading_pair,
@@ -169,20 +35,116 @@ impl Amm for ObricV2Amm {
         })
     }
 
+    fn label(&self) -> String {
+        String::from("Obric V2")
+    }
+
     fn program_id(&self) -> Pubkey {
-        PROGRAM_ID
+        self::id()
+    }
+
+    fn key(&self) -> Pubkey {
+        self.key
+    }
+
+    fn get_reserve_mints(&self) -> Vec<Pubkey> {
+        [self.state.mint_x, self.state.mint_y].to_vec()
+    }
+
+    fn get_accounts_to_update(&self) -> Vec<Pubkey> {
+        let mut accounts = vec![
+            self.state.reserve_x,
+            self.state.reserve_y,
+            self.state.x_price_feed_id,
+            self.state.y_price_feed_id,
+        ];
+
+        if self.x_decimals == 0 && self.y_decimals == 0 {
+            accounts.extend([self.state.mint_x, self.state.mint_y]);
+        }
+
+        accounts
+    }
+
+    fn has_dynamic_accounts(&self) -> bool {
+        true
+    }
+
+    fn update(&mut self, account_map: &AccountMap) -> Result<()> {
+        let reserve_x_token_account =
+            TokenAccount::unpack(try_get_account_data(account_map, &self.state.reserve_x)?)?;
+        let reserve_y_token_account =
+            TokenAccount::unpack(try_get_account_data(account_map, &self.state.reserve_y)?)?;
+
+        self.current_x = reserve_x_token_account.amount;
+        self.current_y = reserve_y_token_account.amount;
+
+        if self.x_decimals == 0 && self.y_decimals == 0 {
+            let mint_x = Mint::unpack(try_get_account_data(account_map, &self.state.mint_x)?)?;
+            let mint_y = &Mint::unpack(try_get_account_data(account_map, &self.state.mint_y)?)?;
+
+            self.x_decimals = mint_x.decimals;
+            self.y_decimals = mint_y.decimals;
+        }
+
+        let price_x_fee = PriceFeed::try_deserialize(&mut try_get_account_data(
+            account_map,
+            &self.state.x_price_feed_id,
+        )?)?;
+        let price_y_fee = PriceFeed::try_deserialize(&mut try_get_account_data(
+            account_map,
+            &self.state.y_price_feed_id,
+        )?)?;
+
+        let price_x = price_x_fee.price_normalized()?.price as u64;
+        let price_y = price_y_fee.price_normalized()?.price as u64;
+
+        self.state
+            .update_price(price_x, price_y, self.x_decimals, self.y_decimals)?;
+
+        Ok(())
+    }
+
+    fn quote(&self, quote_params: &QuoteParams) -> Result<Quote> {
+        let (output_after_fee, protocol_fee, lp_fee) =
+            if quote_params.input_mint.eq(&self.state.mint_x) {
+                self.state
+                    .quote_x_to_y(quote_params.amount, self.current_x, self.current_y)?
+            } else if quote_params.input_mint.eq(&self.state.mint_y) {
+                self.state
+                    .quote_y_to_x(quote_params.amount, self.current_x, self.current_y)?
+            } else {
+                bail!("Quote doesn't return");
+            };
+
+        let fee_amount = protocol_fee
+            .checked_add(lp_fee)
+            .ok_or_else(|| anyhow!("fee amount overflow"))?;
+
+        Ok(Quote {
+            out_amount: output_after_fee,
+            fee_amount,
+            fee_mint: quote_params.output_mint,
+            ..Quote::default()
+        })
+    }
+
+    fn clone_amm(&self) -> Box<dyn Amm + Send + Sync> {
+        Box::new(self.clone())
     }
 
     fn get_swap_and_account_metas(&self, swap_params: &SwapParams) -> Result<SwapAndAccountMetas> {
-        let (user_token_account_x, user_token_account_y, protocol_fee) =
+        let (x_to_y, user_token_account_x, user_token_account_y, protocol_fee) =
             if swap_params.source_mint.eq(&self.state.mint_x) {
                 (
+                    true,
                     swap_params.source_token_account,
                     swap_params.destination_token_account,
                     self.state.protocol_fee_y,
                 )
             } else {
                 (
+                    false,
                     swap_params.destination_token_account,
                     swap_params.source_token_account,
                     self.state.protocol_fee_x,
@@ -190,8 +152,9 @@ impl Amm for ObricV2Amm {
             };
 
         Ok(SwapAndAccountMetas {
-            swap: Swap::Saber,
+            swap: Swap::Obric { x_to_y },
             account_metas: vec![
+                AccountMeta::new_readonly(self::ID, false),
                 AccountMeta::new(self.key(), false),
                 AccountMeta::new_readonly(self.state.mint_x, false),
                 AccountMeta::new_readonly(self.state.mint_y, false),
@@ -202,8 +165,8 @@ impl Amm for ObricV2Amm {
                 AccountMeta::new(protocol_fee, false),
                 AccountMeta::new_readonly(self.state.x_price_feed_id, false),
                 AccountMeta::new_readonly(self.state.y_price_feed_id, false),
-                AccountMeta::new_readonly(swap_params.token_transfer_authority, true),
-                AccountMeta::new_readonly(anchor_spl::token::spl_token::id(), false),
+                AccountMeta::new_readonly(swap_params.token_transfer_authority, false),
+                AccountMeta::new_readonly(spl_token::id(), false),
             ],
         })
     }
