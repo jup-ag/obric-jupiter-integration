@@ -1,7 +1,7 @@
 use anchor_lang::{declare_id, AccountDeserialize};
 use anyhow::{anyhow, bail, Result};
 use jupiter_amm_interface::{
-    try_get_account_data, AccountMap, Amm, AmmContext, ClockRef, KeyedAccount, Quote, QuoteParams, 
+    try_get_account_data, AccountMap, Amm, AmmContext, ClockRef, KeyedAccount, Quote, QuoteParams,
     Swap, SwapAndAccountMetas, SwapParams,
 };
 use obric_solana::state::{PriceFeed, SSTradingPair};
@@ -100,7 +100,10 @@ impl Amm for ObricV2Amm {
             &self.state.y_price_feed_id,
         )?)?;
 
-        let time = self.clock_ref.unix_timestamp.load(std::sync::atomic::Ordering::Relaxed);
+        let time = self
+            .clock_ref
+            .unix_timestamp
+            .load(std::sync::atomic::Ordering::Relaxed);
         let price_x = price_x_fee.price_normalized(time, MAX_AGE)?.price as u64;
         let price_y = price_y_fee.price_normalized(time, MAX_AGE)?.price as u64;
 

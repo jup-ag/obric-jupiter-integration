@@ -62,8 +62,11 @@ fn test_quote() {
     let test_harness = AmmTestHarness::new();
     let all_keyed_account = test_harness.get_all_keyed_account().unwrap();
     let clock = Clock {
-      unix_timestamp: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() as i64,
-      ..Clock::default()
+        unix_timestamp: SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64,
+        ..Clock::default()
     };
     let amm_context = AmmContext {
         clock_ref: ClockRef::from(clock),
