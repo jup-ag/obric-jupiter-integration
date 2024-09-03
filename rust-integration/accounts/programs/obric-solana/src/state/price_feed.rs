@@ -21,7 +21,7 @@ impl PriceFeed {
 impl AccountDeserialize for PriceFeed {
     fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self> {
         let account: PriceAccount =
-            load_price_account(data).map_err(|_x| error!(ObricError::PythError))?;
+            *load_price_account(data).map_err(|_x| error!(ObricError::PythError))?;
 
         // Use a dummy key since the key field will be removed from the SDK
         let zero = [0u8; 32];
