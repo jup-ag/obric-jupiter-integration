@@ -60,44 +60,15 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-access-control"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d5e1a413b311b039d29b61d0dbb401c9dbf04f792497ceca87593454bf6d7dd"
-dependencies = [
- "anchor-syn 0.27.0",
- "anyhow",
- "proc-macro2",
- "quote",
- "regex",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-attribute-access-control"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faa5be5b72abea167f87c868379ba3c2be356bfca9e6f474fd055fa0f7eeb4f2"
 dependencies = [
- "anchor-syn 0.28.0",
+ "anchor-syn",
  "anyhow",
  "proc-macro2",
  "quote",
  "regex",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-attribute-account"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cca9aeaf633c6e2365fed0525dcac68610be58eee5dc69d3b86fe0b1d4b320b9"
-dependencies = [
- "anchor-syn 0.27.0",
- "anyhow",
- "bs58 0.4.0",
- "proc-macro2",
- "quote",
- "rustversion",
  "syn 1.0.109",
 ]
 
@@ -107,7 +78,7 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f468970344c7c9f9d03b4da854fd7c54f21305059f53789d0045c1dd803f0018"
 dependencies = [
- "anchor-syn 0.28.0",
+ "anchor-syn",
  "anyhow",
  "bs58 0.5.0",
  "proc-macro2",
@@ -118,35 +89,12 @@ dependencies = [
 
 [[package]]
 name = "anchor-attribute-constant"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "788e44f9e8501dabeb6f9229da0f3268fb2ae3208912608ffaa056a72031296f"
-dependencies = [
- "anchor-syn 0.27.0",
- "proc-macro2",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-attribute-constant"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59948e7f9ef8144c2aefb3f32a40c5fce2798baeec765ba038389e82301017ef"
 dependencies = [
- "anchor-syn 0.28.0",
+ "anchor-syn",
  "proc-macro2",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-attribute-error"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea0c4d8c7e4a2605ede6fcdced9690288b2f74e24768619a85229d57e597bc97"
-dependencies = [
- "anchor-syn 0.27.0",
- "proc-macro2",
- "quote",
  "syn 1.0.109",
 ]
 
@@ -156,20 +104,7 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc753c9d1c7981cb8948cf7e162fb0f64558999c0413058e2d43df1df5448086"
 dependencies = [
- "anchor-syn 0.28.0",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-attribute-event"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a3b07d5c5d87b5edc72428b447b8e9ee1143b83dd1afc6a6b1d352c6a6164d8"
-dependencies = [
- "anchor-syn 0.27.0",
- "anyhow",
+ "anchor-syn",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -181,20 +116,7 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f38b4e172ba1b52078f53fdc9f11e3dc0668ad27997838a0aad2d148afac8c97"
 dependencies = [
- "anchor-syn 0.28.0",
- "anyhow",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-attribute-program"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b22ad0445115dbea5869b1d062da49ae125abed9132fc20c33227f25e42dfa6b"
-dependencies = [
- "anchor-syn 0.27.0",
+ "anchor-syn",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -207,20 +129,7 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4eebd21543606ab61e2d83d9da37d24d3886a49f390f9c43a1964735e8c0f0d5"
 dependencies = [
- "anchor-syn 0.28.0",
- "anyhow",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-derive-accounts"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48daeff6781ba2f02961b0ad211feb9a2de75af345d42c62b1a252fd4dfb0724"
-dependencies = [
- "anchor-syn 0.27.0",
+ "anchor-syn",
  "anyhow",
  "proc-macro2",
  "quote",
@@ -233,19 +142,8 @@ version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec4720d899b3686396cced9508f23dab420f1308344456ec78ef76f98fda42af"
 dependencies = [
- "anchor-syn 0.28.0",
+ "anchor-syn",
  "anyhow",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "anchor-derive-space"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4fe2886f92c4f33ec1b2b8b2b43ca1b9070cf4929e63c7eaaa09a9f2c0d5123"
-dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -264,45 +162,22 @@ dependencies = [
 
 [[package]]
 name = "anchor-lang"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbbe5d1c7c057c6d63b4f2f538a320e4a22111126c9966340c3d9490e2f15ed1"
-dependencies = [
- "anchor-attribute-access-control 0.27.0",
- "anchor-attribute-account 0.27.0",
- "anchor-attribute-constant 0.27.0",
- "anchor-attribute-error 0.27.0",
- "anchor-attribute-event 0.27.0",
- "anchor-attribute-program 0.27.0",
- "anchor-derive-accounts 0.27.0",
- "anchor-derive-space 0.27.0",
- "arrayref",
- "base64 0.13.1",
- "bincode",
- "borsh",
- "bytemuck",
- "solana-program",
- "thiserror",
-]
-
-[[package]]
-name = "anchor-lang"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d2d4b20100f1310a774aba3471ef268e5c4ba4d5c28c0bbe663c2658acbc414"
 dependencies = [
- "anchor-attribute-access-control 0.28.0",
- "anchor-attribute-account 0.28.0",
- "anchor-attribute-constant 0.28.0",
- "anchor-attribute-error 0.28.0",
- "anchor-attribute-event 0.28.0",
- "anchor-attribute-program 0.28.0",
- "anchor-derive-accounts 0.28.0",
- "anchor-derive-space 0.28.0",
+ "anchor-attribute-access-control",
+ "anchor-attribute-account",
+ "anchor-attribute-constant",
+ "anchor-attribute-error",
+ "anchor-attribute-event",
+ "anchor-attribute-program",
+ "anchor-derive-accounts",
+ "anchor-derive-space",
  "arrayref",
  "base64 0.13.1",
  "bincode",
- "borsh",
+ "borsh 0.9.3",
  "bytemuck",
  "getrandom 0.2.9",
  "solana-program",
@@ -311,46 +186,15 @@ dependencies = [
 
 [[package]]
 name = "anchor-spl"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75cc8066fbd45e0e03edf48342c79265aa34ca76cefeace48ef6c402b6946665"
-dependencies = [
- "anchor-lang 0.27.0",
- "solana-program",
- "spl-associated-token-account",
- "spl-token",
- "spl-token-2022 0.5.0",
-]
-
-[[package]]
-name = "anchor-spl"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78f860599da1c2354e7234c768783049eb42e2f54509ecfc942d2e0076a2da7b"
 dependencies = [
- "anchor-lang 0.28.0",
+ "anchor-lang",
  "solana-program",
  "spl-associated-token-account",
  "spl-token",
- "spl-token-2022 0.6.1",
-]
-
-[[package]]
-name = "anchor-syn"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11cb31fe143aedb36fc41409ea072aa0b840cbea727e62eb2ff6e7b6cea036ff"
-dependencies = [
- "anyhow",
- "bs58 0.3.1",
- "heck",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "sha2 0.9.9",
- "syn 1.0.109",
- "thiserror",
+ "spl-token-2022",
 ]
 
 [[package]]
@@ -493,8 +337,18 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15bf3650200d8bffa99015595e10f1fbd17de07abbc25bb067da79e769939bfa"
 dependencies = [
- "borsh-derive",
+ "borsh-derive 0.9.3",
  "hashbrown 0.11.2",
+]
+
+[[package]]
+name = "borsh"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4114279215a005bc675e386011e594e1d9b800918cea18fcadadcce864a2046b"
+dependencies = [
+ "borsh-derive 0.10.3",
+ "hashbrown 0.12.3",
 ]
 
 [[package]]
@@ -503,8 +357,21 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6441c552f230375d18e3cc377677914d2ca2b0d36e52129fe15450a2dce46775"
 dependencies = [
- "borsh-derive-internal",
- "borsh-schema-derive-internal",
+ "borsh-derive-internal 0.9.3",
+ "borsh-schema-derive-internal 0.9.3",
+ "proc-macro-crate 0.1.5",
+ "proc-macro2",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "borsh-derive"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0754613691538d51f329cce9af41d7b7ca150bc973056f1156611489475f54f7"
+dependencies = [
+ "borsh-derive-internal 0.10.3",
+ "borsh-schema-derive-internal 0.10.3",
  "proc-macro-crate 0.1.5",
  "proc-macro2",
  "syn 1.0.109",
@@ -515,6 +382,17 @@ name = "borsh-derive-internal"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5449c28a7b352f2d1e592a8a28bf139bc71afb0764a14f3c02500935d8c44065"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "borsh-derive-internal"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afb438156919598d2c7bad7e1c0adf3d26ed3840dbc010db1a882a65583ca2fb"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -533,10 +411,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "bs58"
-version = "0.3.1"
+name = "borsh-schema-derive-internal"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476e9cd489f9e121e02ffa6014a8ef220ecb15c05ed23fc34cca13925dc283fb"
+checksum = "634205cc43f74a1b9046ef87c4540ebda95696ec0f315024860cad7c5b0f5ccd"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "bs58"
@@ -1073,9 +956,9 @@ name = "larix-lending"
 version = "0.1.0"
 source = "git+https://github.com/ProjectLarix/larix-lending.git?rev=229c423c1bd9a07c9cff4dbd3cbe3614198f17c8#229c423c1bd9a07c9cff4dbd3cbe3614198f17c8"
 dependencies = [
- "anchor-lang 0.28.0",
+ "anchor-lang",
  "arrayref",
- "borsh",
+ "borsh 0.9.3",
  "bytemuck",
  "num-derive",
  "num-traits",
@@ -1331,23 +1214,23 @@ dependencies = [
 name = "obric-solana"
 version = "0.1.0"
 dependencies = [
- "anchor-lang 0.27.0",
- "anchor-spl 0.27.0",
+ "anchor-lang",
+ "anchor-spl",
  "num",
- "pyth-sdk",
- "pyth-sdk-solana",
+ "pyth-sdk 0.8.0",
+ "pyth-sdk-solana 0.10.2",
 ]
 
 [[package]]
 name = "obric-solana-v3"
 version = "0.1.0"
 dependencies = [
- "anchor-lang 0.28.0",
- "anchor-spl 0.28.0",
+ "anchor-lang",
+ "anchor-spl",
  "larix-lending",
  "num",
- "pyth-sdk",
- "pyth-sdk-solana",
+ "pyth-sdk 0.7.0",
+ "pyth-sdk-solana 0.7.1",
 ]
 
 [[package]]
@@ -1461,8 +1344,22 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00bf2540203ca3c7a5712fdb8b5897534b7f6a0b6e7b0923ff00466c5f9efcb3"
 dependencies = [
- "borsh",
- "borsh-derive",
+ "borsh 0.9.3",
+ "borsh-derive 0.9.3",
+ "hex",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "pyth-sdk"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e7aeef4d5f0a9c98ff5af2ddd84a8b89919c512188305b497a9eb9afa97a949"
+dependencies = [
+ "borsh 0.10.3",
+ "borsh-derive 0.10.3",
+ "getrandom 0.2.9",
  "hex",
  "schemars",
  "serde",
@@ -1474,12 +1371,29 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4bc0e0ab39d0543220dcba7c248161aab70e25916b2c1585057abc0856ff4e0c"
 dependencies = [
- "borsh",
- "borsh-derive",
+ "borsh 0.9.3",
+ "borsh-derive 0.9.3",
  "bytemuck",
  "num-derive",
  "num-traits",
- "pyth-sdk",
+ "pyth-sdk 0.7.0",
+ "serde",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
+name = "pyth-sdk-solana"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9301b3c3db3766fd1dd0c5769a706d886265b3f56772ac279365bdd807d3076"
+dependencies = [
+ "borsh 0.10.3",
+ "borsh-derive 0.10.3",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "pyth-sdk 0.8.0",
  "serde",
  "solana-program",
  "thiserror",
@@ -1865,8 +1779,8 @@ dependencies = [
  "bincode",
  "bitflags",
  "blake3",
- "borsh",
- "borsh-derive",
+ "borsh 0.9.3",
+ "borsh-derive 0.9.3",
  "bs58 0.4.0",
  "bv",
  "bytemuck",
@@ -1914,7 +1828,7 @@ dependencies = [
  "base64 0.13.1",
  "bincode",
  "bitflags",
- "borsh",
+ "borsh 0.9.3",
  "bs58 0.4.0",
  "bytemuck",
  "byteorder",
@@ -2006,12 +1920,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "978dba3bcbe88d0c2c58366c254d9ea41c5f73357e72fc0bdee4d6b5fc99c8f4"
 dependencies = [
  "assert_matches",
- "borsh",
+ "borsh 0.9.3",
  "num-derive",
  "num-traits",
  "solana-program",
  "spl-token",
- "spl-token-2022 0.6.1",
+ "spl-token-2022",
  "thiserror",
 ]
 
@@ -2036,24 +1950,6 @@ dependencies = [
  "num-traits",
  "num_enum",
  "solana-program",
- "thiserror",
-]
-
-[[package]]
-name = "spl-token-2022"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0edb869dbe159b018f17fb9bfa67118c30f232d7f54a73742bc96794dff77ed8"
-dependencies = [
- "arrayref",
- "bytemuck",
- "num-derive",
- "num-traits",
- "num_enum",
- "solana-program",
- "solana-zk-token-sdk",
- "spl-memo",
- "spl-token",
  "thiserror",
 ]
 
