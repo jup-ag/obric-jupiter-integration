@@ -310,7 +310,7 @@ dependencies = [
  "arrayref",
  "base64 0.13.0",
  "bincode",
- "borsh",
+ "borsh 0.9.3",
  "bytemuck",
  "solana-program",
  "thiserror",
@@ -333,7 +333,7 @@ dependencies = [
  "arrayref",
  "base64 0.13.0",
  "bincode",
- "borsh",
+ "borsh 0.9.3",
  "bytemuck",
  "getrandom 0.2.10",
  "solana-program",
@@ -612,8 +612,18 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15bf3650200d8bffa99015595e10f1fbd17de07abbc25bb067da79e769939bfa"
 dependencies = [
- "borsh-derive",
+ "borsh-derive 0.9.3",
  "hashbrown 0.11.2",
+]
+
+[[package]]
+name = "borsh"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4114279215a005bc675e386011e594e1d9b800918cea18fcadadcce864a2046b"
+dependencies = [
+ "borsh-derive 0.10.3",
+ "hashbrown 0.12.3",
 ]
 
 [[package]]
@@ -622,8 +632,21 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6441c552f230375d18e3cc377677914d2ca2b0d36e52129fe15450a2dce46775"
 dependencies = [
- "borsh-derive-internal",
- "borsh-schema-derive-internal",
+ "borsh-derive-internal 0.9.3",
+ "borsh-schema-derive-internal 0.9.3",
+ "proc-macro-crate 0.1.5",
+ "proc-macro2 1.0.86",
+ "syn 1.0.98",
+]
+
+[[package]]
+name = "borsh-derive"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0754613691538d51f329cce9af41d7b7ca150bc973056f1156611489475f54f7"
+dependencies = [
+ "borsh-derive-internal 0.10.3",
+ "borsh-schema-derive-internal 0.10.3",
  "proc-macro-crate 0.1.5",
  "proc-macro2 1.0.86",
  "syn 1.0.98",
@@ -641,10 +664,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "borsh-derive-internal"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afb438156919598d2c7bad7e1c0adf3d26ed3840dbc010db1a882a65583ca2fb"
+dependencies = [
+ "proc-macro2 1.0.86",
+ "quote 1.0.36",
+ "syn 1.0.98",
+]
+
+[[package]]
 name = "borsh-schema-derive-internal"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdbd5696d8bfa21d53d9fe39a714a18538bad11492a42d066dbbc395fb1951c0"
+dependencies = [
+ "proc-macro2 1.0.86",
+ "quote 1.0.36",
+ "syn 1.0.98",
+]
+
+[[package]]
+name = "borsh-schema-derive-internal"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "634205cc43f74a1b9046ef87c4540ebda95696ec0f315024860cad7c5b0f5ccd"
 dependencies = [
  "proc-macro2 1.0.86",
  "quote 1.0.36",
@@ -1774,7 +1819,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88d261f1e85b560aa5a8a2943e7f300637250bcabe403288a9cdb2eb7d039a58"
 dependencies = [
  "anyhow",
- "borsh",
+ "borsh 0.9.3",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -1789,7 +1834,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be954b20150b666b2bc328d1e490294a1c096e545f985d852f53c941209b2649"
 dependencies = [
  "anyhow",
- "borsh",
+ "borsh 0.9.3",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -1808,9 +1853,9 @@ name = "larix-lending"
 version = "0.1.0"
 source = "git+https://github.com/ProjectLarix/larix-lending.git?rev=229c423c1bd9a07c9cff4dbd3cbe3614198f17c8#229c423c1bd9a07c9cff4dbd3cbe3614198f17c8"
 dependencies = [
- "anchor-lang 0.27.0",
+ "anchor-lang 0.28.0",
  "arrayref",
- "borsh",
+ "borsh 0.9.3",
  "bytemuck",
  "num-derive",
  "num-traits",
@@ -1825,9 +1870,9 @@ name = "larix-lending"
 version = "0.1.0"
 source = "git+https://github.com/ProjectLarix/larix-lending.git#229c423c1bd9a07c9cff4dbd3cbe3614198f17c8"
 dependencies = [
- "anchor-lang 0.27.0",
+ "anchor-lang 0.28.0",
  "arrayref",
- "borsh",
+ "borsh 0.9.3",
  "bytemuck",
  "num-derive",
  "num-traits",
@@ -2233,8 +2278,8 @@ dependencies = [
  "anchor-lang 0.27.0",
  "anchor-spl 0.27.0",
  "num 0.4.1",
- "pyth-sdk",
- "pyth-sdk-solana",
+ "pyth-sdk 0.8.0",
+ "pyth-sdk-solana 0.10.2",
 ]
 
 [[package]]
@@ -2245,8 +2290,8 @@ dependencies = [
  "anchor-spl 0.28.0",
  "larix-lending 0.1.0 (git+https://github.com/ProjectLarix/larix-lending.git?rev=229c423c1bd9a07c9cff4dbd3cbe3614198f17c8)",
  "num 0.4.1",
- "pyth-sdk",
- "pyth-sdk-solana",
+ "pyth-sdk 0.7.0",
+ "pyth-sdk-solana 0.7.2",
 ]
 
 [[package]]
@@ -2486,8 +2531,22 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00bf2540203ca3c7a5712fdb8b5897534b7f6a0b6e7b0923ff00466c5f9efcb3"
 dependencies = [
- "borsh",
- "borsh-derive",
+ "borsh 0.9.3",
+ "borsh-derive 0.9.3",
+ "hex",
+ "schemars",
+ "serde",
+]
+
+[[package]]
+name = "pyth-sdk"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e7aeef4d5f0a9c98ff5af2ddd84a8b89919c512188305b497a9eb9afa97a949"
+dependencies = [
+ "borsh 0.10.3",
+ "borsh-derive 0.10.3",
+ "getrandom 0.2.10",
  "hex",
  "schemars",
  "serde",
@@ -2499,12 +2558,29 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1fcd2dcd063ea85004667cf5cb07f30de7387f17249df988a295e764a47b9f5"
 dependencies = [
- "borsh",
- "borsh-derive",
+ "borsh 0.9.3",
+ "borsh-derive 0.9.3",
  "bytemuck",
  "num-derive",
  "num-traits",
- "pyth-sdk",
+ "pyth-sdk 0.7.0",
+ "serde",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
+name = "pyth-sdk-solana"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9301b3c3db3766fd1dd0c5769a706d886265b3f56772ac279365bdd807d3076"
+dependencies = [
+ "borsh 0.10.3",
+ "borsh-derive 0.10.3",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "pyth-sdk 0.8.0",
  "serde",
  "solana-program",
  "thiserror",
@@ -3492,8 +3568,8 @@ dependencies = [
  "bincode",
  "bitflags",
  "blake3",
- "borsh",
- "borsh-derive",
+ "borsh 0.9.3",
+ "borsh-derive 0.9.3",
  "bs58 0.4.0",
  "bv",
  "bytemuck",
@@ -3597,7 +3673,7 @@ dependencies = [
  "base64 0.13.0",
  "bincode",
  "bitflags",
- "borsh",
+ "borsh 0.9.3",
  "bs58 0.4.0",
  "bytemuck",
  "byteorder",
@@ -3689,7 +3765,7 @@ dependencies = [
  "Inflector",
  "base64 0.13.0",
  "bincode",
- "borsh",
+ "borsh 0.9.3",
  "bs58 0.4.0",
  "lazy_static",
  "log",
@@ -3800,7 +3876,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fbc000f0fdf1f12f99d77d398137c1751345b18c88258ce0f99b7872cf6c9bd6"
 dependencies = [
  "assert_matches",
- "borsh",
+ "borsh 0.9.3",
  "num-derive",
  "num-traits",
  "solana-program",
