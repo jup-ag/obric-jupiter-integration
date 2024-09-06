@@ -8,9 +8,9 @@ edition = "2021"
 [dependencies]
 jupiter-amm-interface = "^0.4.5"
 obric-solana = { path = "../accounts/programs/obric-solana" }
-anchor-lang = "^0.27.0"
+anchor-lang = "^0.29.0"
 anyhow = "^1"
-solana-sdk = "^1.14.11"
+solana-sdk = "^1.18.0"
 spl-token = { version = "^3.5", features = ["no-entrypoint"] }
 
 [dev-dependencies]
