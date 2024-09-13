@@ -224,6 +224,8 @@ impl SSTradingPair {
             .checked_div(100)
             .ok_or(ObricError::NumOverflowing)?
             .checked_mul(self.rebate_percentage)
+            .ok_or(ObricError::NumOverflowing)?
+            .checked_div(100)
             .ok_or(ObricError::NumOverflowing)?;
         let fee_x = fee_before_rebate_x - rebate_x;
         let output_after_fee_x = output_before_fee_x - fee_x;
