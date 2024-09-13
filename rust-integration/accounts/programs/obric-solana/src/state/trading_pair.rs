@@ -79,7 +79,9 @@ impl SSTradingPair {
         let target_x_value = (target_x as u128)
             .checked_mul(self.mult_x as u128)
             .ok_or(ObricError::NumOverflowing)?;
-        let target_y_value = value_total - target_x_value;
+        let target_y_value = value_total
+            .checked_sub(target_x_value)
+            .ok_or(ObricError::NumOverflowing)?;
         let target_y = (target_y_value
             .checked_div(self.mult_y as u128)
             .ok_or(ObricError::NumOverflowing)?) as u64;
@@ -126,7 +128,9 @@ impl SSTradingPair {
             .checked_div(new_x_k)
             .ok_or(ObricError::NumOverflowing)?;
 
-        let output_before_fee_y: u64 = (current_y_k - new_y_k) as u64;
+        let output_before_fee_y: u64 = (current_y_k
+            .checked_sub(new_y_k)
+            .ok_or(ObricError::NumOverflowing)?) as u64;
         if output_before_fee_y >= current_y {
             return Ok((0u64, 0u64, 0u64));
         }
@@ -135,11 +139,16 @@ impl SSTradingPair {
             .ok_or(ObricError::NumOverflowing)?
             .checked_div(MILLION)
             .ok_or(ObricError::NumOverflowing)?;
-        let rebate_ratio = std::cmp::min(input_x, target_x - std::cmp::min(target_x, current_x))
-            .checked_mul(100)
-            .ok_or(ObricError::NumOverflowing)?
-            .checked_div(input_x)
-            .ok_or(ObricError::NumOverflowing)?;
+        let rebate_ratio = std::cmp::min(
+            input_x,
+            target_x
+                .checked_sub(std::cmp::min(target_x, current_x))
+                .ok_or(ObricError::NumOverflowing)?,
+        )
+        .checked_mul(100)
+        .ok_or(ObricError::NumOverflowing)?
+        .checked_div(input_x)
+        .ok_or(ObricError::NumOverflowing)?;
         let rebate_y = fee_before_rebate_y
             .checked_mul(rebate_ratio)
             .ok_or(ObricError::NumOverflowing)?
@@ -149,15 +158,21 @@ impl SSTradingPair {
             .ok_or(ObricError::NumOverflowing)?
             .checked_div(100)
             .ok_or(ObricError::NumOverflowing)?;
-        let fee_y = fee_before_rebate_y - rebate_y;
-        let output_after_fee_y = output_before_fee_y - fee_y;
+        let fee_y = fee_before_rebate_y
+            .checked_sub(rebate_y)
+            .ok_or(ObricError::NumOverflowing)?;
+        let output_after_fee_y = output_before_fee_y
+            .checked_sub(fee_y)
+            .ok_or(ObricError::NumOverflowing)?;
 
         let protocol_fee_y = fee_y
             .checked_mul(self.protocol_fee_share_thousandth)
             .ok_or(ObricError::NumOverflowing)?
             .checked_div(1000)
             .ok_or(ObricError::NumOverflowing)?;
-        let lp_fee_y = fee_y - protocol_fee_y;
+        let lp_fee_y = fee_y
+            .checked_sub(protocol_fee_y)
+            .ok_or(ObricError::NumOverflowing)?;
 
         Ok((output_after_fee_y, protocol_fee_y, lp_fee_y))
     }
@@ -203,7 +218,9 @@ impl SSTradingPair {
             .checked_div(new_y_k)
             .ok_or(ObricError::NumOverflowing)?;
 
-        let output_before_fee_x: u64 = (current_x_k - new_x_k) as u64;
+        let output_before_fee_x: u64 = (current_x_k
+            .checked_sub(new_x_k)
+            .ok_or(ObricError::NumOverflowing)?) as u64;
         if output_before_fee_x >= current_x {
             return Ok((0u64, 0u64, 0u64));
         }
@@ -213,11 +230,16 @@ impl SSTradingPair {
             .ok_or(ObricError::NumOverflowing)?
             .checked_div(MILLION)
             .ok_or(ObricError::NumOverflowing)?;
-        let rebate_ratio = std::cmp::min(input_y, target_y - std::cmp::min(target_y, current_y))
-            .checked_mul(100)
-            .ok_or(ObricError::NumOverflowing)?
-            .checked_div(input_y)
-            .ok_or(ObricError::NumOverflowing)?;
+        let rebate_ratio = std::cmp::min(
+            input_y,
+            target_y
+                .checked_sub(std::cmp::min(target_y, current_y))
+                .ok_or(ObricError::NumOverflowing)?,
+        )
+        .checked_mul(100)
+        .ok_or(ObricError::NumOverflowing)?
+        .checked_div(input_y)
+        .ok_or(ObricError::NumOverflowing)?;
         let rebate_x = fee_before_rebate_x
             .checked_mul(rebate_ratio)
             .ok_or(ObricError::NumOverflowing)?
@@ -227,8 +249,12 @@ impl SSTradingPair {
             .ok_or(ObricError::NumOverflowing)?
             .checked_div(100)
             .ok_or(ObricError::NumOverflowing)?;
-        let fee_x = fee_before_rebate_x - rebate_x;
-        let output_after_fee_x = output_before_fee_x - fee_x;
+        let fee_x = fee_before_rebate_x
+            .checked_sub(rebate_x)
+            .ok_or(ObricError::NumOverflowing)?;
+        let output_after_fee_x = output_before_fee_x
+            .checked_sub(fee_x)
+            .ok_or(ObricError::NumOverflowing)?;
 
         let protocol_fee_x = fee_x
             .checked_mul(self.protocol_fee_share_thousandth)
@@ -236,7 +262,9 @@ impl SSTradingPair {
             .checked_div(1000)
             .ok_or(ObricError::NumOverflowing)?;
 
-        let lp_fee_x = fee_x - protocol_fee_x;
+        let lp_fee_x = fee_x
+            .checked_sub(protocol_fee_x)
+            .ok_or(ObricError::NumOverflowing)?;
 
         Ok((output_after_fee_x, protocol_fee_x, lp_fee_x))
     }
