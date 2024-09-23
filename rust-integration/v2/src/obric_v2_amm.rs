@@ -10,7 +10,7 @@ use spl_token::state::{Account as TokenAccount, Mint};
 
 declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
 
-const MAX_AGE: u64 = 30;
+const MAX_AGE: u64 = 70;
 
 #[derive(Clone)]
 pub struct ObricV2Amm {
