@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use pyth_sdk::{Price, UnixTimestamp};
-use pyth_sdk_solana::state::{load_price_account, PriceAccount};
+use pyth_sdk_solana::state::{load_price_account, SolanaPriceAccount};
 
 use crate::errors::ObricError;
 
@@ -20,7 +20,7 @@ impl PriceFeed {
 
 impl AccountDeserialize for PriceFeed {
     fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self> {
-        let account: PriceAccount =
+        let account: SolanaPriceAccount =
             *load_price_account(data).map_err(|_x| error!(ObricError::PythError))?;
 
         // Use a dummy key since the key field will be removed from the SDK

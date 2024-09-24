@@ -57,6 +57,7 @@ impl Amm for ObricV2Amm {
 
     fn get_accounts_to_update(&self) -> Vec<Pubkey> {
         let mut accounts = vec![
+            self.key(),
             self.state.reserve_x,
             self.state.reserve_y,
             self.state.x_price_feed_id,
@@ -75,11 +76,14 @@ impl Amm for ObricV2Amm {
     }
 
     fn update(&mut self, account_map: &AccountMap) -> Result<()> {
+        let trading_pair_account = 
+            SSTradingPair::try_deserialize(&mut try_get_account_data(account_map, &self.key())?)?;
         let reserve_x_token_account =
             TokenAccount::unpack(try_get_account_data(account_map, &self.state.reserve_x)?)?;
         let reserve_y_token_account =
             TokenAccount::unpack(try_get_account_data(account_map, &self.state.reserve_y)?)?;
 
+        self.state = trading_pair_account;
         self.current_x = reserve_x_token_account.amount;
         self.current_y = reserve_y_token_account.amount;
 
