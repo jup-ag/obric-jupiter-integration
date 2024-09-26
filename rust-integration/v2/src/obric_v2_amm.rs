@@ -10,8 +10,6 @@ use spl_token::state::{Account as TokenAccount, Mint};
 
 declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
 
-const MAX_AGE: u64 = 70;
-
 #[derive(Clone)]
 pub struct ObricV2Amm {
     key: Pubkey,
@@ -108,8 +106,8 @@ impl Amm for ObricV2Amm {
             .clock_ref
             .unix_timestamp
             .load(std::sync::atomic::Ordering::Relaxed);
-        let price_x = price_x_fee.price_normalized(time, MAX_AGE)?.price as u64;
-        let price_y = price_y_fee.price_normalized(time, MAX_AGE)?.price as u64;
+        let price_x = price_x_fee.price_normalized(time, self.state.feed_max_age_x as u64)?.price as u64;
+        let price_y = price_y_fee.price_normalized(time, self.state.feed_max_age_y as u64)?.price as u64;
 
         self.state
             .update_price(price_x, price_y, self.x_decimals, self.y_decimals)?;

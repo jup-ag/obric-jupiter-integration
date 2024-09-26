@@ -36,7 +36,13 @@ pub struct SSTradingPair {
     pub volume_record: [u64; 8],
     pub volume_time_record: [i64; 8],
 
-    pub padding: [u64; 24],
+    pub version: u16,
+    pub feed_max_age_x: u8,
+    pub feed_max_age_y: u8,
+
+    pub pad: u32,
+
+    pub padding: [u64; 23],
 }
 
 impl SSTradingPair {
