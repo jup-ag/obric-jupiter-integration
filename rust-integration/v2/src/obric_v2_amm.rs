@@ -19,6 +19,8 @@ pub struct ObricV2Amm {
     pub x_decimals: u8,
     pub y_decimals: u8,
     clock_ref: ClockRef,
+    x_price_publish_time: i64,
+    y_price_publish_time: i64,
 }
 
 impl Amm for ObricV2Amm {
@@ -34,6 +36,8 @@ impl Amm for ObricV2Amm {
             x_decimals: 0u8,
             y_decimals: 0u8,
             clock_ref: amm_context.clock_ref.clone(),
+            x_price_publish_time: 0,
+            y_price_publish_time: 0,
         })
     }
 
@@ -106,16 +110,31 @@ impl Amm for ObricV2Amm {
             .clock_ref
             .unix_timestamp
             .load(std::sync::atomic::Ordering::Relaxed);
-        let price_x = price_x_fee.price_normalized(time, self.state.feed_max_age_x as u64)?.price as u64;
-        let price_y = price_y_fee.price_normalized(time, self.state.feed_max_age_y as u64)?.price as u64;
+        let price_x = price_x_fee.price_normalized(time, self.state.feed_max_age_x as u64)?;
+        let price_y = price_y_fee.price_normalized(time, self.state.feed_max_age_y as u64)?;
+
+        self.x_price_publish_time = price_x.publish_time;
+        self.y_price_publish_time = price_y.publish_time;
 
         self.state
-            .update_price(price_x, price_y, self.x_decimals, self.y_decimals)?;
+            .update_price(price_x.price as u64, price_y.price as u64, self.x_decimals, self.y_decimals)?;
 
         Ok(())
     }
 
     fn quote(&self, quote_params: &QuoteParams) -> Result<Quote> {
+
+        let time = self
+            .clock_ref
+            .unix_timestamp
+            .load(std::sync::atomic::Ordering::Relaxed);
+
+        let x_age = time.checked_sub(self.x_price_publish_time).ok_or(anyhow!("overflow"))?;
+        let y_age = time.checked_sub(self.y_price_publish_time).ok_or(anyhow!("overflow"))?;
+        if x_age > self.state.feed_max_age_x as i64 || y_age > self.state.feed_max_age_y as i64 {
+          return Err(anyhow!("stale price feed"));
+        }
+
         let (output_after_fee, protocol_fee, lp_fee) =
             if quote_params.input_mint.eq(&self.state.mint_x) {
                 self.state
