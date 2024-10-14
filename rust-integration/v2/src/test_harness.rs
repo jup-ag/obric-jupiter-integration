@@ -75,6 +75,10 @@ fn test_quote() {
     for keyed_account in all_keyed_account {
         let amm = &mut ObricV2Amm::from_keyed_account(&keyed_account, &amm_context).unwrap();
         test_harness.update_amm(amm);
+
+        if amm.current_x == 0 || amm.current_y == 0 {
+            continue;
+        }
         println!("Pool: {}, {}", amm.state.mint_x, amm.state.mint_y);
         let amount = pow(10, usize::from(amm.x_decimals));
         let quote = amm

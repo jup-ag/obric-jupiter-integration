@@ -29,3 +29,37 @@ impl AccountDeserialize for PriceFeed {
         return Ok(PriceFeed(feed));
     }
 }
+
+pub fn parse_dove_price(data: &[u8], current_time: UnixTimestamp, age: u8) -> Option<(u64, i64)> {
+
+    if data.len() != 283 {
+        return None;
+    }
+
+    let mut price = unsafe {
+        data.as_ptr().add(8 + 32 + 33).cast::<u64>().read_unaligned()
+    };
+
+    let mut expo = unsafe {
+        data.as_ptr().add(8 + 32 + 33 + 8).cast::<i8>().read_unaligned()
+    };
+
+    let time = unsafe {
+        data.as_ptr().add(8 + 32 + 33 + 8 + 1).cast::<i64>().read_unaligned()
+    };
+
+    if (time + age as i64) < current_time {
+        return None;
+    }
+
+    if expo > -3 {
+        return None;
+    }
+
+    while expo != -3 {
+        expo += 1;
+        price /= 10;
+    }
+
+    Some((price, time))
+}

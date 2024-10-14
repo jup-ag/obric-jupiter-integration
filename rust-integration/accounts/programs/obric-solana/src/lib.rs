@@ -60,12 +60,14 @@ pub struct Swap<'info> {
 
     #[account(
         mut,
-        constraint = (is_x_to_y && protocol_fee.key() == trading_pair.protocol_fee_y) ||
-        (!is_x_to_y && protocol_fee.key() == trading_pair.protocol_fee_x)
+        constraint =  whirlpool.key() == trading_pair.whirlpool
     )]
-    pub protocol_fee: Box<Account<'info, TokenAccount>>,
+    pub whirlpool: Box<Account<'info, TokenAccount>>,
 
-    #[account(address = trading_pair.x_price_feed_id @ ObricError::InvalidPriceAccount)]
+    #[account(
+        constraint = trading_pair.x_price_feed_id == x_price_feed.key() || 
+        trading_pair.dove_oracle == x_price_feed.key() @ ObricError::InvalidPriceAccount
+    )]
     pub x_price_feed: AccountInfo<'info>,
 
     #[account(address = trading_pair.y_price_feed_id @ ObricError::InvalidPriceAccount)]

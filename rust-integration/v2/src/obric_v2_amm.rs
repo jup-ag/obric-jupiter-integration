@@ -4,7 +4,7 @@ use jupiter_amm_interface::{
     try_get_account_data, AccountMap, Amm, AmmContext, ClockRef, KeyedAccount, Quote, QuoteParams,
     Swap, SwapAndAccountMetas, SwapParams,
 };
-use obric_solana::state::{PriceFeed, SSTradingPair};
+use obric_solana::state::{parse_dove_price, PriceFeed, SSTradingPair};
 use solana_sdk::{instruction::AccountMeta, program_pack::Pack, pubkey::Pubkey};
 use spl_token::state::{Account as TokenAccount, Mint};
 
@@ -12,15 +12,15 @@ declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
 
 #[derive(Clone)]
 pub struct ObricV2Amm {
-    key: Pubkey,
+    pub key: Pubkey,
     pub state: SSTradingPair,
-    current_x: u64,
-    current_y: u64,
+    pub current_x: u64,
+    pub current_y: u64,
     pub x_decimals: u8,
     pub y_decimals: u8,
-    clock_ref: ClockRef,
-    x_price_publish_time: i64,
-    y_price_publish_time: i64,
+    pub clock_ref: ClockRef,
+    pub x_price_publish_time: i64,
+    pub y_price_publish_time: i64,
 }
 
 impl Amm for ObricV2Amm {
@@ -64,6 +64,7 @@ impl Amm for ObricV2Amm {
             self.state.reserve_y,
             self.state.x_price_feed_id,
             self.state.y_price_feed_id,
+            self.state.dove_oracle,
         ];
 
         if self.x_decimals == 0 && self.y_decimals == 0 {
@@ -78,16 +79,22 @@ impl Amm for ObricV2Amm {
     }
 
     fn update(&mut self, account_map: &AccountMap) -> Result<()> {
-        let trading_pair_account = 
+        let trading_pair_account =
             SSTradingPair::try_deserialize(&mut try_get_account_data(account_map, &self.key())?)?;
         let reserve_x_token_account =
             TokenAccount::unpack(try_get_account_data(account_map, &self.state.reserve_x)?)?;
         let reserve_y_token_account =
             TokenAccount::unpack(try_get_account_data(account_map, &self.state.reserve_y)?)?;
 
+        let dove_oracle_data = try_get_account_data(account_map, &self.state.dove_oracle)?;
+
         self.state = trading_pair_account;
         self.current_x = reserve_x_token_account.amount;
         self.current_y = reserve_y_token_account.amount;
+
+        if self.current_x == 0 || self.current_y == 0 {
+            return Ok(());
+        }
 
         if self.x_decimals == 0 && self.y_decimals == 0 {
             let mint_x = Mint::unpack(try_get_account_data(account_map, &self.state.mint_x)?)?;
@@ -110,29 +117,45 @@ impl Amm for ObricV2Amm {
             .clock_ref
             .unix_timestamp
             .load(std::sync::atomic::Ordering::Relaxed);
-        let price_x = price_x_fee.price_normalized(time, self.state.feed_max_age_x as u64)?;
+
+        let dove_price = parse_dove_price(dove_oracle_data, time, self.state.feed_max_age_x);
+
+        let (x_price, x_publish_time) = match dove_price {
+            Some((price, time)) => (price, time),
+            None => {
+                let p = price_x_fee.price_normalized(time, self.state.feed_max_age_x as u64)?;
+                (p.price as u64, p.publish_time)
+            }
+        };
         let price_y = price_y_fee.price_normalized(time, self.state.feed_max_age_y as u64)?;
 
-        self.x_price_publish_time = price_x.publish_time;
+        self.x_price_publish_time = x_publish_time;
         self.y_price_publish_time = price_y.publish_time;
 
-        self.state
-            .update_price(price_x.price as u64, price_y.price as u64, self.x_decimals, self.y_decimals)?;
+        self.state.update_price(
+            x_price,
+            price_y.price as u64,
+            self.x_decimals,
+            self.y_decimals,
+        )?;
 
         Ok(())
     }
 
     fn quote(&self, quote_params: &QuoteParams) -> Result<Quote> {
-
         let time = self
             .clock_ref
             .unix_timestamp
             .load(std::sync::atomic::Ordering::Relaxed);
 
-        let x_age = time.checked_sub(self.x_price_publish_time).ok_or(anyhow!("overflow"))?;
-        let y_age = time.checked_sub(self.y_price_publish_time).ok_or(anyhow!("overflow"))?;
+        let x_age = time
+            .checked_sub(self.x_price_publish_time)
+            .ok_or(anyhow!("overflow"))?;
+        let y_age = time
+            .checked_sub(self.y_price_publish_time)
+            .ok_or(anyhow!("overflow"))?;
         if x_age > self.state.feed_max_age_x as i64 || y_age > self.state.feed_max_age_y as i64 {
-          return Err(anyhow!("stale price feed"));
+            return Err(anyhow!("stale price feed"));
         }
 
         let (output_after_fee, protocol_fee, lp_fee) =
@@ -163,22 +186,29 @@ impl Amm for ObricV2Amm {
     }
 
     fn get_swap_and_account_metas(&self, swap_params: &SwapParams) -> Result<SwapAndAccountMetas> {
-        let (x_to_y, user_token_account_x, user_token_account_y, protocol_fee) =
+        let (x_to_y, user_token_account_x, user_token_account_y) =
             if swap_params.source_mint.eq(&self.state.mint_x) {
                 (
                     true,
                     swap_params.source_token_account,
                     swap_params.destination_token_account,
-                    self.state.protocol_fee_y,
                 )
             } else {
                 (
                     false,
                     swap_params.destination_token_account,
                     swap_params.source_token_account,
-                    self.state.protocol_fee_x,
                 )
             };
+
+        let is_dove_disabled = self.state.dove_oracle == self.state.whirlpool
+            || self.state.dove_oracle == self.state.x_price_feed_id;
+
+        let main_oracle = if is_dove_disabled {
+            self.state.x_price_feed_id
+        } else {
+            self.state.dove_oracle
+        };
 
         Ok(SwapAndAccountMetas {
             swap: Swap::Obric { x_to_y },
@@ -191,8 +221,8 @@ impl Amm for ObricV2Amm {
                 AccountMeta::new(self.state.reserve_y, false),
                 AccountMeta::new(user_token_account_x, false),
                 AccountMeta::new(user_token_account_y, false),
-                AccountMeta::new(protocol_fee, false),
-                AccountMeta::new_readonly(self.state.x_price_feed_id, false),
+                AccountMeta::new(self.state.whirlpool, false),
+                AccountMeta::new_readonly(main_oracle, false),
                 AccountMeta::new_readonly(self.state.y_price_feed_id, false),
                 AccountMeta::new_readonly(swap_params.token_transfer_authority, false),
                 AccountMeta::new_readonly(spl_token::id(), false),
