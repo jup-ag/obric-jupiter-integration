@@ -5,9 +5,13 @@ use pyth_sdk_solana::state::{load_price_account, SolanaPriceAccount};
 use crate::errors::ObricError;
 
 #[derive(Clone, Debug)]
-pub struct PriceFeed(pyth_sdk::PriceFeed);
+pub struct PriceFeed(pub pyth_sdk::PriceFeed);
 
 impl PriceFeed {
+    pub fn get_timestamp(&self) -> UnixTimestamp {
+        self.0.get_price_unchecked().publish_time
+    }
+
     pub fn price_normalized(&self, current_time: UnixTimestamp, age: u64) -> Result<Price> {
         let p = self
             .0
@@ -30,30 +34,22 @@ impl AccountDeserialize for PriceFeed {
     }
 }
 
-pub fn parse_dove_price(data: &[u8], current_time: UnixTimestamp, age: u8) -> Option<(u64, i64)> {
-
-    if data.len() != 283 {
-        return None;
-    }
-
-    let mut price = unsafe {
-        data.as_ptr().add(8 + 32 + 33).cast::<u64>().read_unaligned()
-    };
-
-    let mut expo = unsafe {
-        data.as_ptr().add(8 + 32 + 33 + 8).cast::<i8>().read_unaligned()
-    };
-
-    let time = unsafe {
-        data.as_ptr().add(8 + 32 + 33 + 8 + 1).cast::<i64>().read_unaligned()
-    };
+pub fn parse_dove_price(
+    data: &mut &[u8],
+    current_time: UnixTimestamp,
+    age: u8,
+) -> Result<(u64, i64)> {
+    let price_feed: doves_cpi::PriceFeed = doves_cpi::PriceFeed::try_deserialize(data)?;
+    let mut price = price_feed.price;
+    let mut expo = price_feed.expo;
+    let time = price_feed.timestamp;
 
     if (time + age as i64) < current_time {
-        return None;
+        return Err(ObricError::PythError.into());
     }
 
     if expo > -3 {
-        return None;
+        return Err(ObricError::PythError.into());
     }
 
     while expo != -3 {
@@ -61,5 +57,5 @@ pub fn parse_dove_price(data: &[u8], current_time: UnixTimestamp, age: u8) -> Op
         price /= 10;
     }
 
-    Some((price, time))
+    Ok((price, time))
 }
