@@ -62,7 +62,7 @@ pub struct Swap<'info> {
         mut,
         constraint =  whirlpool.key() == trading_pair.whirlpool
     )]
-    pub whirlpool: Box<Account<'info, TokenAccount>>,
+    pub whirlpool: AccountInfo<'info>,
 
     #[account(
         constraint = trading_pair.x_price_feed_id == x_price_feed.key() || 
