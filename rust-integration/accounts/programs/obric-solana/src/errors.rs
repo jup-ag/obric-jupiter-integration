@@ -28,4 +28,5 @@ pub enum ObricError {
     InvalidPriceOwner,
 
     InvalidRoutesForSwap,
+    PoolLocked,
 }
