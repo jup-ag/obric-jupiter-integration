@@ -1,0 +1,17 @@
+[package]
+name = "doves-cpi"
+version = "0.1.0"
+description = "CPI client for the Doves Oracle program."
+authors = [""]
+license = "Apache-2.0"
+keywords = ["solana", "anchor"]
+
+[features]
+default = ["cpi"]
+no-entrypoint = []
+cpi = ["no-entrypoint"]
+staging = []
+
+[dependencies]
+anchor-lang = "0.29"
+anchor-gen = "0.3.1"
