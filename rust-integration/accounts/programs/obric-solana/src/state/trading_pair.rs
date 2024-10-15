@@ -13,8 +13,8 @@ pub struct SSTradingPair {
     pub reserve_x: Pubkey,
     pub reserve_y: Pubkey,
 
-    pub protocol_fee_x: Pubkey,
-    pub protocol_fee_y: Pubkey,
+    pub whirlpool: Pubkey,
+    pub dove_oracle: Pubkey,
 
     pub bump: u8,
     // mints
