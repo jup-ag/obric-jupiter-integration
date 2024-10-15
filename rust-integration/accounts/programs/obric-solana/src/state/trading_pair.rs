@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use num::{integer::Roots, pow};
 
 #[account]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Copy)]
 pub struct SSTradingPair {
     pub is_initialized: bool,
 
@@ -40,9 +40,21 @@ pub struct SSTradingPair {
     pub feed_max_age_x: u8,
     pub feed_max_age_y: u8,
 
-    pub pad: u32,
+    pub padding: [u8; 4],
 
-    pub padding: [u64; 23],
+    pub mint_sslp_x: Pubkey,
+    pub mint_sslp_y: Pubkey,
+    pub secondary_price_x: Pubkey,
+    pub secondary_price_y: Pubkey,
+
+    pub whirl_mult: u32,
+    pub whirl_divisor: u16,
+    pub whirl_enabled: bool,
+
+    pub target_y_based_lock: bool,
+    pub reference_target_y: u64,
+
+    pub padding2: [u64; 5],
 }
 
 impl SSTradingPair {
@@ -107,6 +119,15 @@ impl SSTradingPair {
         }
 
         let (target_x, _target_y) = self.get_target_xy(current_x, current_y)?;
+
+        // perform lock-checking
+        if self.target_y_based_lock {
+            let allow_swap = abs_diff(current_x + input_x, target_x)? < abs_diff(current_x, target_x)?;
+
+            if !allow_swap {
+                return Ok((0u64, 0u64, 0u64));
+            }
+        }
 
         // 0. get target_x on curve-K
         let big_k = self.big_k;
@@ -198,6 +219,15 @@ impl SSTradingPair {
 
         let (target_x, target_y) = self.get_target_xy(current_x, current_y)?;
 
+        // perform lock-checking
+        if self.target_y_based_lock {
+            let allow_swap = abs_diff(current_y + input_y, target_y)? < abs_diff(current_y, target_y)?;
+
+            if !allow_swap {
+                return Ok((0u64, 0u64, 0u64));
+            }
+        }
+
         // 0. get target_x on curve-K
         let big_k = self.big_k;
         //target_x_K = sqrt(big_k / p), where p = mult_x / mult_y
@@ -274,4 +304,14 @@ impl SSTradingPair {
 
         Ok((output_after_fee_x, protocol_fee_x, lp_fee_x))
     }
+}
+
+pub fn abs_diff(x: u64, y: u64) -> Result<u64> {
+    let val = if x > y {
+        x.checked_sub(y).ok_or(ObricError::NumOverflowing)?
+    } 
+    else {
+        y.checked_sub(x).ok_or(ObricError::NumOverflowing)?
+    };
+    Ok(val)
 }
