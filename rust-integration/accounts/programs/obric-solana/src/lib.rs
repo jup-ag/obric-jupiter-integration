@@ -60,17 +60,21 @@ pub struct Swap<'info> {
 
     #[account(
         mut,
-        constraint =  whirlpool.key() == trading_pair.whirlpool
+        constraint =  reference_oracle.key() == trading_pair.reference_oracle || 
+        reference_oracle.key() == trading_pair.second_reference_oracle
     )]
-    pub whirlpool: AccountInfo<'info>,
+    pub reference_oracle: AccountInfo<'info>,
 
     #[account(
         constraint = trading_pair.x_price_feed_id == x_price_feed.key() || 
-        trading_pair.dove_oracle == x_price_feed.key() @ ObricError::InvalidPriceAccount
+        trading_pair.secondary_price_x == x_price_feed.key() @ ObricError::InvalidPriceAccount
     )]
     pub x_price_feed: AccountInfo<'info>,
 
-    #[account(address = trading_pair.y_price_feed_id @ ObricError::InvalidPriceAccount)]
+    #[account(
+        constraint = trading_pair.y_price_feed_id == y_price_feed.key() ||
+        trading_pair.secondary_price_y == y_price_feed.key() @ ObricError::InvalidPriceAccount
+    )]
     pub y_price_feed: AccountInfo<'info>,
 
     pub user: Signer<'info>,
