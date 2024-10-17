@@ -104,7 +104,7 @@ fn test_quote() {
         let quote = amm
             .quote(&QuoteParams {
                 input_mint: amm.state.mint_y,
-                amount,
+                amount: in_amount,
                 output_mint: amm.state.mint_x,
                 swap_mode: SwapMode::ExactIn,
             })
