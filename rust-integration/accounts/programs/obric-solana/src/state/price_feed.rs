@@ -28,6 +28,14 @@ impl PriceFeed {
             .ok_or(ObricError::PythError)?;
         Ok(price)
     }
+
+    pub fn price_normalized_unchecked(&self, decimals: u8) -> Result<Price> {
+        let p = self.0.get_price_unchecked();
+        let price = p
+            .scale_to_exponent(-(decimals as i32))
+            .ok_or(ObricError::PythError)?;
+        Ok(price)
+    }
 }
 
 impl AccountDeserialize for PriceFeed {
@@ -48,13 +56,22 @@ pub fn parse_dove_price(
     current_time: UnixTimestamp,
     age: u8,
 ) -> Result<(u64, i64)> {
-    let mut price = doves_price_feed.price;
-    let mut expo = doves_price_feed.expo;
     let time = doves_price_feed.timestamp;
 
     if (time + age as i64) < current_time {
         return Err(ObricError::PythError.into());
     }
+
+    return parse_dove_price_unchecked(doves_price_feed, decimals);
+}
+
+pub fn parse_dove_price_unchecked(
+    doves_price_feed: &doves_cpi::PriceFeed,
+    decimals: u8,
+) -> Result<(u64, i64)> {
+    let mut price = doves_price_feed.price;
+    let mut expo = doves_price_feed.expo;
+    let time = doves_price_feed.timestamp;
 
     let wanted_expo = -(decimals as i8);
 
@@ -82,5 +99,18 @@ pub fn parse_price(
     }
     let price_feed = PriceFeed::try_deserialize(&mut data_and_owner.0)?;
     let p = price_feed.price_normalized(decimals, current_time, max_age as u64)?;
+    Ok((p.price as u64, p.publish_time))
+}
+
+pub fn parse_price_unchecked(
+    mut data_and_owner: (&[u8], &Pubkey),
+    decimals: u8,
+) -> Result<(u64, i64)> {
+    if data_and_owner.1 == &doves_id {
+        let doves_price_feed = doves_cpi::PriceFeed::try_deserialize(&mut data_and_owner.0)?;
+        return parse_dove_price_unchecked(&doves_price_feed, decimals);
+    }
+    let price_feed = PriceFeed::try_deserialize(&mut data_and_owner.0)?;
+    let p = price_feed.price_normalized_unchecked(decimals)?;
     Ok((p.price as u64, p.publish_time))
 }
