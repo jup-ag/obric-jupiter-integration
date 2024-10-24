@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use doves_cpi::ID as doves_id;
 use pyth_sdk::{Price, UnixTimestamp};
 use pyth_sdk_solana::state::{load_price_account, SolanaPriceAccount};
 
@@ -70,17 +71,16 @@ pub fn parse_dove_price(
 }
 
 pub fn parse_price(
-    data: &mut &[u8],
+    mut data_and_owner: (&[u8], &Pubkey),
     decimals: u8,
     current_time: UnixTimestamp,
     max_age: u8,
 ) -> Result<(u64, i64)> {
-    if let Ok(doves_price_feed) = doves_cpi::PriceFeed::try_deserialize(data) {
+    if data_and_owner.1 == &doves_id {
+        let doves_price_feed = doves_cpi::PriceFeed::try_deserialize(&mut data_and_owner.0)?;
         return parse_dove_price(&doves_price_feed, decimals, current_time, max_age);
     }
-
-    let price_feed = PriceFeed::try_deserialize(data)?;
+    let price_feed = PriceFeed::try_deserialize(&mut data_and_owner.0)?;
     let p = price_feed.price_normalized(decimals, current_time, max_age as u64)?;
-
     Ok((p.price as u64, p.publish_time))
 }
