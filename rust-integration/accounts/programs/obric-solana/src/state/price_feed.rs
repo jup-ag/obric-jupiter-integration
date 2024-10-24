@@ -12,12 +12,19 @@ impl PriceFeed {
         self.0.get_price_unchecked().publish_time
     }
 
-    pub fn price_normalized(&self, decimals: u8, current_time: UnixTimestamp, age: u64) -> Result<Price> {
+    pub fn price_normalized(
+        &self,
+        decimals: u8,
+        current_time: UnixTimestamp,
+        age: u64,
+    ) -> Result<Price> {
         let p = self
             .0
             .get_price_no_older_than(current_time, age)
             .ok_or(ObricError::PythOffline)?;
-        let price = p.scale_to_exponent(-(decimals as i32)).ok_or(ObricError::PythError)?;
+        let price = p
+            .scale_to_exponent(-(decimals as i32))
+            .ok_or(ObricError::PythError)?;
         Ok(price)
     }
 }
@@ -35,15 +42,14 @@ impl AccountDeserialize for PriceFeed {
 }
 
 pub fn parse_dove_price(
-    data: &mut &[u8],
+    doves_price_feed: &doves_cpi::PriceFeed,
     decimals: u8,
     current_time: UnixTimestamp,
     age: u8,
 ) -> Result<(u64, i64)> {
-    let price_feed: doves_cpi::PriceFeed = doves_cpi::PriceFeed::try_deserialize(data)?;
-    let mut price = price_feed.price;
-    let mut expo = price_feed.expo;
-    let time = price_feed.timestamp;
+    let mut price = doves_price_feed.price;
+    let mut expo = doves_price_feed.expo;
+    let time = doves_price_feed.timestamp;
 
     if (time + age as i64) < current_time {
         return Err(ObricError::PythError.into());
@@ -69,13 +75,12 @@ pub fn parse_price(
     current_time: UnixTimestamp,
     max_age: u8,
 ) -> Result<(u64, i64)> {
-    let dove_result = parse_dove_price(data, decimals, current_time, max_age);
+    if let Ok(doves_price_feed) = doves_cpi::PriceFeed::try_deserialize(data) {
+        return parse_dove_price(&doves_price_feed, decimals, current_time, max_age);
+    }
 
-    if dove_result.is_ok() {
-        dove_result
-    }
-    else {
-        let p = PriceFeed::try_deserialize(data)?.price_normalized(decimals, current_time, max_age as u64)?;
-        Ok((p.price as u64, p.publish_time))
-    }
+    let price_feed = PriceFeed::try_deserialize(data)?;
+    let p = price_feed.price_normalized(decimals, current_time, max_age as u64)?;
+
+    Ok((p.price as u64, p.publish_time))
 }
